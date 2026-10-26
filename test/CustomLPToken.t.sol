@@ -12,8 +12,8 @@ contract CustomLPTokenTest is Test {
         lp = new CustomLPToken("CustomToken","CLPT");
     }
 
-    function test_Creator() public {
-        assertEq(lp.pool(),address(this));
+    function test_Creator() public view{
+        assertEq(lp.pool(), address(this));
     }
 
     function test_Viev_Process() public {
