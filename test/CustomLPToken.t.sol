@@ -9,10 +9,10 @@ contract CustomLPTokenTest is Test {
     address alice = makeAddr("alice");
 
     function setUp() public {
-        lp = new CustomLPToken("CustomToken","CLPT");
+        lp = new CustomLPToken("CustomToken", "CLPT");
     }
 
-    function test_Creator() public view{
+    function test_Creator() public view {
         assertEq(lp.pool(), address(this));
     }
 
@@ -23,22 +23,19 @@ contract CustomLPTokenTest is Test {
         lp.burn(alice, 60);
         assertEq(lp.balanceOf(alice), 40);
         assertEq(lp.totalSupply(), 40);
-
     }
 
-    function test_MintNootPool() public{
+    function test_MintNootPool() public {
         vm.prank(alice);
         vm.expectRevert(CustomLPToken.NotPool.selector);
-        lp.mint(alice,100);
+        lp.mint(alice, 100);
     }
 
-    function test_MintNootPoolBurn() public{
-        lp.mint(alice,100);
+    function test_MintNootPoolBurn() public {
+        lp.mint(alice, 100);
         vm.prank(alice);
         vm.expectRevert(CustomLPToken.NotPool.selector);
-        lp.burn(alice,100);
-
+        lp.burn(alice, 100);
     }
-
 }
 

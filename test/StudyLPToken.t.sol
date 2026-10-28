@@ -18,14 +18,14 @@ contract StudyLPTokenTest is Test {
 
     function test_PoolCanMintAndBurn() public {
         lp.mint(alice, 100);
-        assertEq(lp.balanceOf(alice),100);
+        assertEq(lp.balanceOf(alice), 100);
 
-        lp.burn(alice,40);
+        lp.burn(alice, 40);
         assertEq(lp.balanceOf(alice), 60);
         assertEq(lp.totalSupply(), 60);
     }
 
-    function  test_RevertWhen_NotPoolMints() public {
+    function test_RevertWhen_NotPoolMints() public {
         vm.prank(alice);
         vm.expectRevert(StudyLPToken.NotPool.selector);
         lp.mint(alice, 100);

@@ -12,20 +12,17 @@ contract StudyLPToken is ERC20 {
         if (msg.sender != pool) revert NotPool();
         _;
     }
-    
 
-    constructor(string memory name_,string memory symbol_) ERC20(name_, symbol_) {
-    pool = msg.sender;
-}
+    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {
+        pool = msg.sender;
+    }
 
-function mint(address to, uint256 amount) external onlyPool {
-    _mint(to, amount);
-}
+    function mint(address to, uint256 amount) external onlyPool {
+        _mint(to, amount);
+    }
 
-function burn (address from, uint256 amount) external onlyPool {
- _burn(from, amount);
-}
-
-
+    function burn(address from, uint256 amount) external onlyPool {
+        _burn(from, amount);
+    }
 }
 
