@@ -12,7 +12,7 @@ contract CustomPool {
     uint112 private reserve1;
     uint32 private blockTimestampLast;
 
-    constructor(){
+    constructor() {
         factory = msg.sender;
     }
 }
