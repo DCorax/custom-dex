@@ -7,6 +7,7 @@ import {CustomPool} from "../contracts/CustomPool.sol";
 contract CustomPoolTest is Test {
     CustomPool pool;
 
+
     function setUp() public {
         pool = new CustomPool();
     }
