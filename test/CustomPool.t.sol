@@ -6,6 +6,9 @@ import {CustomPool} from "../contracts/CustomPool.sol";
 
 contract CustomPoolTest is Test {
     CustomPool pool;
+    address tokenA = makeAddr("tokenA");
+    address tokenB = makeAddr("tokenB");
+    address alice = makeAddr("alice");
 
     function setUp() public {
         pool = new CustomPool();
@@ -14,4 +17,24 @@ contract CustomPoolTest is Test {
     function test_FactoryIsCreator() public view {
         assertEq(pool.factory(), address(this));
     }
+
+    function test_Initialize_SetsTokens() public {
+        pool.initialize(tokenA, tokenB);
+        assertEq(pool.token0(), tokenA);
+        assertEq(pool.token1(), tokenB);
+    }
+
+    function test_RevertWhen_NotFactory() public {
+        vm.prank(alice);
+        vm.expectRevert(CustomPool.NotFactory.selector);
+        pool.initialize(tokenA, tokenB);
+    }
+
+    function test_RevertWhen_AlreadyInitialized() public {
+        pool.initialize(tokenA, tokenB);
+        vm.expectRevert(CustomPool.AlreadyInitialized.selector);
+        pool.initialize(tokenA, tokenB);
+    }
+
+    
 }
