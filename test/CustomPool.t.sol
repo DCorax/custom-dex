@@ -36,5 +36,13 @@ contract CustomPoolTest is Test {
         pool.initialize(tokenA, tokenB);
     }
 
-    
+    function test_RevertWhen_ZeroAddress() public {
+        vm.expectRevert(CustomPool.ZeroAddress.selector);
+        pool.initialize(tokenA, address(0));
+    }
+
+    function test_Initialize_LinksLPToken() public {
+        pool.initialize(tokenA, tokenB);
+        assertEq(pool.lpToken().pool(), address(pool));
+    }
 }
