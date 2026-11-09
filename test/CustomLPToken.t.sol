@@ -12,11 +12,11 @@ contract CustomLPTokenTest is Test {
         lp = new CustomLPToken("CustomToken", "CLPT");
     }
 
-    function test_Creator() public view {
+    function test_PoolIsCreator() public view {
         assertEq(lp.pool(), address(this));
     }
 
-    function test_Viev_Process() public {
+    function test_MintAndBurn_UpdatesBalance() public {
         lp.mint(alice, 100);
         assertEq(lp.balanceOf(alice), 100);
 
@@ -25,13 +25,13 @@ contract CustomLPTokenTest is Test {
         assertEq(lp.totalSupply(), 40);
     }
 
-    function test_MintNootPool() public {
+    function test_RevertWhen_MintNotPool() public {
         vm.prank(alice);
         vm.expectRevert(CustomLPToken.NotPool.selector);
         lp.mint(alice, 100);
     }
 
-    function test_MintNootPoolBurn() public {
+    function test_RevertWhen_BurnNotPool() public {
         lp.mint(alice, 100);
         vm.prank(alice);
         vm.expectRevert(CustomLPToken.NotPool.selector);
