@@ -2,8 +2,15 @@
 pragma solidity ^0.8.20;
 
 import {CustomLPToken} from "./CustomLPToken.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract CustomPool {
+contract CustomPool is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
+    uint256 public constant MINIMUM_LIQUIDITY = 1000;
+
     address public factory;
     address public token0;
     address public token1;
@@ -15,6 +22,7 @@ contract CustomPool {
     error NotFactory();
     error AlreadyInitialized();
     error ZeroAddress();
+    error Overflow();
 
     constructor() {
         factory = msg.sender;
@@ -34,5 +42,17 @@ contract CustomPool {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
+    }
+
+    function _update(uint256 balance0, uint256 balance1) private {
+        if (balance0 > type(uint112).max || balance1 > type(uint112).max) revert Overflow();
+        // casting to 'uint112' is safe because both balances are checked above
+        // forge-lint: disable-next-line(unsafe-typecast)
+        reserve0 = uint112(balance0);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        reserve1 = uint112(balance1);
+        // casting to 'uint32' is safe because wrap in year 2106 is expected , as in Uniswap v2
+        // forge-lint: disable-next-line(unsafe-typecast)
+        blockTimestampLast = uint32(block.timestamp);
     }
 }
