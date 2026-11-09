@@ -45,4 +45,12 @@ contract CustomPoolTest is Test {
         pool.initialize(tokenA, tokenB);
         assertEq(pool.lpToken().pool(), address(pool));
     }
+
+    function test_GetReserves_ZeroAfterInitialize() public {
+        pool.initialize(tokenA, tokenB);
+        (uint112 r0, uint112 r1, uint32 ts) = pool.getReserves();
+        assertEq(r0, 0);
+        assertEq(r1, 0);
+        assertEq(ts, 0);
+    }
 }
