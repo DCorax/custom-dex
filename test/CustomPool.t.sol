@@ -3,15 +3,18 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {CustomPool} from "../contracts/CustomPool.sol";
+import {MockToken} from "./mocks/MockToken.sol";
 
 contract CustomPoolTest is Test {
     CustomPool pool;
-    address tokenA = makeAddr("tokenA");
-    address tokenB = makeAddr("tokenB");
+    address tokenA;
+    address tokenB;
     address alice = makeAddr("alice");
 
     function setUp() public {
         pool = new CustomPool();
+        tokenA = address(new MockToken("Token A", "TKA"));
+        tokenB = address(new MockToken("Token B", "TKB"));
     }
 
     function test_FactoryIsCreator() public view {
