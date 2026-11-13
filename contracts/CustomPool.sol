@@ -5,11 +5,13 @@ import {CustomLPToken} from "./CustomLPToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract CustomPool is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 public constant MINIMUM_LIQUIDITY = 1000;
+    address private constant DEAD = address(0xdead);
 
     address public factory;
     address public token0;
@@ -23,6 +25,7 @@ contract CustomPool is ReentrancyGuard {
     error AlreadyInitialized();
     error ZeroAddress();
     error Overflow();
+    error InsufficientLiquidity();
 
     constructor() {
         factory = msg.sender;
@@ -42,6 +45,25 @@ contract CustomPool is ReentrancyGuard {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
+    }
+
+    function addLiquidity(uint256 amount0Desired, uint256 amount1Desired, address to)
+        external
+        nonReentrant
+        returns (uint256 liquidity)
+    {
+        IERC20(token0).safeTransferFrom(msg.sender, address(this), amount0Desired);
+        IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
+        uint256 balance0 = IERC20(token0).balanceOf(address(this));
+        uint256 balance1 = IERC20(token1).balanceOf(address(this));
+        uint256 amount0 = balance0 - uint256(reserve0);
+        uint256 amount1 = balance1 - uint256(reserve1);
+        uint256 root = Math.sqrt(amount0 * amount1);
+        if (root <= MINIMUM_LIQUIDITY) revert InsufficientLiquidity();
+        liquidity = root - MINIMUM_LIQUIDITY;
+        _update(balance0, balance1);
+        lpToken.mint(DEAD, MINIMUM_LIQUIDITY);
+        lpToken.mint(to, liquidity);
     }
 
     function _update(uint256 balance0, uint256 balance1) private {

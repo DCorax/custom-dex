@@ -56,4 +56,28 @@ contract CustomPoolTest is Test {
         assertEq(r1, 0);
         assertEq(ts, 0);
     }
+
+    function test_AddLiquidity_First() public {
+        pool.initialize(tokenA, tokenB);
+
+        MockToken(tokenA).mint(alice, 1_000_000);
+        MockToken(tokenB).mint(alice, 4_000_000);
+
+        vm.startPrank(alice);
+
+        MockToken(tokenA).approve(address(pool), 1_000_000);
+        MockToken(tokenB).approve(address(pool), 4_000_000);
+        uint256 liquidity = pool.addLiquidity(1_000_000, 4_000_000, alice);
+
+        vm.stopPrank();
+
+        assertEq(liquidity, 1_999_000);
+        assertEq(pool.lpToken().balanceOf(alice), 1_999_000);
+
+        assertEq(pool.lpToken().balanceOf(address(0xdead)), 1000);
+
+        (uint112 r0, uint112 r1,) = pool.getReserves();
+        assertEq(r0, 1_000_000);
+        assertEq(r1, 4_000_000);
+    }
 }
