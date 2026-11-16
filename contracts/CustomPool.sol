@@ -58,11 +58,23 @@ contract CustomPool is ReentrancyGuard {
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
         uint256 amount0 = balance0 - uint256(reserve0);
         uint256 amount1 = balance1 - uint256(reserve1);
-        uint256 root = Math.sqrt(amount0 * amount1);
-        if (root <= MINIMUM_LIQUIDITY) revert InsufficientLiquidity();
-        liquidity = root - MINIMUM_LIQUIDITY;
+
+        uint256 supply = lpToken.totalSupply();
+        if (supply == 0) {
+            uint256 root = Math.sqrt(amount0 * amount1);
+
+            if (root <= MINIMUM_LIQUIDITY) revert InsufficientLiquidity();
+            liquidity = root - MINIMUM_LIQUIDITY;
+        } else {
+            uint256 liquidity0 = (amount0 * supply) / uint256(reserve0);
+            uint256 liquidity1 = (amount1 * supply) / uint256(reserve1);
+
+            liquidity = Math.min(liquidity0, liquidity1);
+            if (liquidity == 0) revert InsufficientLiquidity();
+        }
+
         _update(balance0, balance1);
-        lpToken.mint(DEAD, MINIMUM_LIQUIDITY);
+        if (supply == 0) lpToken.mint(DEAD, MINIMUM_LIQUIDITY);
         lpToken.mint(to, liquidity);
     }
 
