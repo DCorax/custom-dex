@@ -80,4 +80,20 @@ contract CustomPoolTest is Test {
         assertEq(r0, 1_000_000);
         assertEq(r1, 4_000_000);
     }
+
+    function test_RevertWhen_InsufficientLiquidity() public {
+        pool.initialize(tokenA,tokenB);
+        MockToken(tokenA).mint(alice, 1000);
+        MockToken(tokenB).mint(alice, 1000);
+
+        vm.startPrank(alice);
+
+        MockToken(tokenA).approve(address(pool), 1000);
+        MockToken(tokenB).approve(address(pool), 1000);
+        vm.expectRevert(CustomPool.InsufficientLiquidity.selector);
+        pool.addLiquidity(1000,1000,alice);
+
+        vm.stopPrank();
+
+    }
 }
