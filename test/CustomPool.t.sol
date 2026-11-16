@@ -10,6 +10,7 @@ contract CustomPoolTest is Test {
     address tokenA;
     address tokenB;
     address alice = makeAddr("alice");
+    address bob = makeAddr("bob");
 
     function setUp() public {
         pool = new CustomPool();
@@ -82,7 +83,7 @@ contract CustomPoolTest is Test {
     }
 
     function test_RevertWhen_InsufficientLiquidity() public {
-        pool.initialize(tokenA,tokenB);
+        pool.initialize(tokenA, tokenB);
         MockToken(tokenA).mint(alice, 1000);
         MockToken(tokenB).mint(alice, 1000);
 
@@ -91,9 +92,37 @@ contract CustomPoolTest is Test {
         MockToken(tokenA).approve(address(pool), 1000);
         MockToken(tokenB).approve(address(pool), 1000);
         vm.expectRevert(CustomPool.InsufficientLiquidity.selector);
-        pool.addLiquidity(1000,1000,alice);
+        pool.addLiquidity(1000, 1000, alice);
 
         vm.stopPrank();
+    }
 
+    function test_AddLiquidity_Second() public {
+        pool.initialize(tokenA, tokenB);
+        MockToken(tokenA).mint(alice, 1_000_000);
+        MockToken(tokenB).mint(alice, 4_000_000);
+        vm.startPrank(alice);
+        MockToken(tokenA).approve(address(pool), 1_000_000);
+        MockToken(tokenB).approve(address(pool), 4_000_000);
+        pool.addLiquidity(1_000_000, 4_000_000, alice);
+        vm.stopPrank();
+
+        MockToken(tokenA).mint(bob, 100_000);
+        MockToken(tokenB).mint(bob, 400_000);
+
+        vm.startPrank(bob);
+        MockToken(tokenA).approve(address(pool), 100_000);
+        MockToken(tokenB).approve(address(pool), 400_000);
+        uint256 liquidity = pool.addLiquidity(100_000, 400_000, bob);
+        vm.stopPrank();
+
+        assertEq(liquidity, 200_000);
+        assertEq(pool.lpToken().balanceOf(bob), 200_000);
+        assertEq(pool.lpToken().totalSupply(), 2_200_000);
+        assertEq(pool.lpToken().balanceOf(address(0xdead)), 1000);
+
+        (uint112 r0, uint112 r1,) = pool.getReserves();
+        assertEq(r0, 1_100_000);
+        assertEq(r1, 4_400_000);
     }
 }
