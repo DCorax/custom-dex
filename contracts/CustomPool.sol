@@ -52,14 +52,30 @@ contract CustomPool is ReentrancyGuard {
         nonReentrant
         returns (uint256 liquidity)
     {
-        IERC20(token0).safeTransferFrom(msg.sender, address(this), amount0Desired);
-        IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
+        uint256 supply = lpToken.totalSupply();
+        uint256 deposit0;
+        uint256 deposit1;
+        if (supply == 0) {
+            deposit0 = amount0Desired;
+            deposit1 = amount1Desired;
+        } else {
+            uint256 amount1Optimal = (amount0Desired * uint256(reserve1)) / uint256(reserve0);
+            if (amount1Optimal <= amount1Desired) {
+                deposit0 = amount0Desired;
+                deposit1 = amount1Optimal;
+            } else {
+                deposit0 = (amount1Desired * uint256(reserve0)) / uint256(reserve1);
+                deposit1 = amount1Desired;
+            }
+        }
+
+        IERC20(token0).safeTransferFrom(msg.sender, address(this), deposit0);
+        IERC20(token1).safeTransferFrom(msg.sender, address(this), deposit1);
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
         uint256 amount0 = balance0 - uint256(reserve0);
         uint256 amount1 = balance1 - uint256(reserve1);
 
-        uint256 supply = lpToken.totalSupply();
         if (supply == 0) {
             uint256 root = Math.sqrt(amount0 * amount1);
 

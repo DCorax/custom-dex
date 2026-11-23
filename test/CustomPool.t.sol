@@ -125,4 +125,64 @@ contract CustomPoolTest is Test {
         assertEq(r0, 1_100_000);
         assertEq(r1, 4_400_000);
     }
+
+    function test_AddLiquidity_ExtraToken1StaysWithUser() public {
+        pool.initialize(tokenA, tokenB);
+        MockToken(tokenA).mint(alice, 1_000_000);
+        MockToken(tokenB).mint(alice, 4_000_000);
+        vm.startPrank(alice);
+        MockToken(tokenA).approve(address(pool), 1_000_000);
+        MockToken(tokenB).approve(address(pool), 4_000_000);
+        pool.addLiquidity(1_000_000, 4_000_000, alice);
+        vm.stopPrank();
+
+        MockToken(tokenA).mint(bob, 100_000);
+        MockToken(tokenB).mint(bob, 500_000);
+
+        vm.startPrank(bob);
+        MockToken(tokenA).approve(address(pool), 100_000);
+        MockToken(tokenB).approve(address(pool), 500_000);
+        uint256 liquidity = pool.addLiquidity(100_000, 500_000, bob);
+        vm.stopPrank();
+        assertEq(liquidity, 200_000);
+
+        assertEq(pool.lpToken().balanceOf(bob), 200_000);
+        assertEq(MockToken(tokenA).balanceOf(bob), 0);
+        assertEq(MockToken(tokenB).balanceOf(bob), 100_000);
+
+        (uint112 r0, uint112 r1,) = pool.getReserves();
+        assertEq(r0, 1_100_000);
+        assertEq(r1, 4_400_000);
+    }
+
+    function test_AddLiquidity_ExtraToken0StaysWithUser() public {
+        pool.initialize(tokenA, tokenB);
+
+        MockToken(tokenA).mint(alice, 1_000_000);
+        MockToken(tokenB).mint(alice, 4_000_000);
+
+        vm.startPrank(alice);
+        MockToken(tokenA).approve(address(pool), 1_000_000);
+        MockToken(tokenB).approve(address(pool), 4_000_000);
+        pool.addLiquidity(1_000_000, 4_000_000, alice);
+        vm.stopPrank();
+
+        MockToken(tokenA).mint(bob, 300_000);
+        MockToken(tokenB).mint(bob, 400_000);
+
+        vm.startPrank(bob);
+        MockToken(tokenA).approve(address(pool), 300_000);
+        MockToken(tokenB).approve(address(pool), 400_000);
+        uint256 liquidity = pool.addLiquidity(300_000, 400_000, bob);
+        vm.stopPrank();
+        assertEq(liquidity, 200_000);
+
+        assertEq(pool.lpToken().balanceOf(bob), 200_000);
+        assertEq(MockToken(tokenA).balanceOf(bob), 200_000);
+        assertEq(MockToken(tokenB).balanceOf(bob), 0);
+
+        (uint112 r0, uint112 r1,) = pool.getReserves();
+        assertEq(r0, 1_100_000);
+        assertEq(r1, 4_400_000);
+    }
 }
